@@ -1,4 +1,4 @@
-name: Build
+name: Build-Server
 
 on:
   workflow_dispatch:
@@ -34,3 +34,26 @@ jobs:
         with:
           name: scrcpy-server
           path: release/work/build-server/server/scrcpy-server
+
+  release:
+    needs:
+      - build-scrcpy-server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download scrcpy-server
+        uses: actions/download-artifact@v4
+        with:
+          name: scrcpy-server
+          path: release/output/scrcpy-server-${{ env.VERSION }}
+
+      - name: Generate checksums
+        run: release/generate_checksums_server.sh
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrcpy-release-${{ env.VERSION }}
+          path: release/output
